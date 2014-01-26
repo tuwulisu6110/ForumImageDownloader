@@ -34,6 +34,7 @@ class eyny(forum):
 		response = self.session.get(logout_url)
 		
 	# right now it only support the hcmoic session :)
+	# should the return list be an class objec so that it is more maintainable?
 	def parsing(self, url):
 		response = self.session.get(url)
 		htmldoc = etree.HTML(response.text)
@@ -41,10 +42,12 @@ class eyny(forum):
 		# image list parsing
 		img_tags = htmldoc.xpath('//div[@class="pcb"]//td[@class="t_f"]//img')
 		comic_title = htmldoc.xpath('//a[@id="thread_subject"]')
-		for img_tag in img_tags:
-			img_src = img_tag.get('src')
+		#for img_tag in img_tags:
+		for i in range(len(img_tags)):
+			img_src = img_tags[i].get('src')
 			if img_src.startswith('http') or img_src.startswith('https'):
-				img_list.append(img_tag.get('src'))
+				img_obj = { "page": i, "link": img_src}
+				img_list.append(img_obj)
 		return img_list, comic_title[0].text
 
 
