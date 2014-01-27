@@ -20,8 +20,7 @@ class DownloadWorker(Greenlet):
 
 	def _parseJob(self, job):
 		self.urlLink = job.urlLink
-		self.downloadFileName = os.path.join(self.store_dir, job.ImageFileName, '{0:03}'.format(job.pageNumber))
-		self.downloadFileName += u'.jpg'
+		self.downloadFileName = os.path.join(self.store_dir, job.ImageFileName, u'{0:03}.img'.format(job.pageNumber))
 
 	def _download(self):
 		while not self.workQueue.empty():
