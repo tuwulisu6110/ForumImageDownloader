@@ -1,2 +1,18 @@
 The ForumImageDownloader will help you parsing the image link in some forum and help you download them to your local foler.
 
+Require Package:
+	1. requests
+	2. gevent
+	3. lxml
+
+DownloadWorker:
+	DownloadWorker class is responsible for downloading the file from the job queue.
+	You have to specify the job queue to the DownloadWorker class by the constructor or by setQueue method.
+
+forum:
+	The forum folder contains some class that define the basic instruction for a forum.
+		a. login : login to the forum, since some of the forum will require login to see the real content.
+		b. logout : logout the session.
+		c. parsing : parse the html content and grab the links.
+	
+
