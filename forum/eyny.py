@@ -47,10 +47,10 @@ class eyny(forum):
 		
 		# creating JobQueue for workers
 		# each parsing will create a new JobQueue 
-		for i in range(len(img_tags)):
-			img_src = img_tags[i].get('src')
-			if img_src.startswith('http') or img_src.startswith('https'):
-				JobQueue.put(Job(comic_title, i, img_src))
+		img_srcs = [src.get('src') for src in img_tags if src.get('src').startswith('http') or src.get('src').startswith('https')]
+		for page, link in enumerate(img_srcs):
+			JobQueue.put(Job(comic_title, page, link))
+
 
 		return comic_title, JobQueue
 
