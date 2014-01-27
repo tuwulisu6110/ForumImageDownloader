@@ -1,9 +1,10 @@
 from gevent.queue import Queue as geventQueue
-from Job import Job
 import requests
 from lxml import etree, html
-from forum import forum
 import os
+
+from forum import forum
+from company.Job import Job
 
 
 class eyny(forum):

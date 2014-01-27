@@ -8,7 +8,7 @@ import os.path
 
 import requests
 from forum.eyny import eyny
-from DownloadWorker import DownloadWorker
+from company.DownloadWorker import DownloadWorker
 
 
 # contains the DownloadJob
