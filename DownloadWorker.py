@@ -2,6 +2,7 @@ from gevent import Greenlet, monkey
 monkey.patch_all()
 import requests
 import os
+from Job import Job
 
 class DownloadWorker(Greenlet):
 	store_dir = u'./temp/'
@@ -18,8 +19,8 @@ class DownloadWorker(Greenlet):
 		self.workerId = id
 
 	def _parseJob(self, job):
-		self.urlLink = job['link']
-		self.downloadFileName = os.path.join(self.store_dir, job['comicTitle'], str(job['page']))
+		self.urlLink = job.urlLink
+		self.downloadFileName = os.path.join(self.store_dir, job.ImageFileName, str(job.pageNumber))
 		self.downloadFileName += u'.jpg'
 
 	def _download(self):

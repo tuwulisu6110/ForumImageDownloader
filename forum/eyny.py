@@ -1,3 +1,5 @@
+from gevent.queue import Queue as geventQueue
+from Job import Job
 import requests
 from lxml import etree, html
 from forum import forum
@@ -32,23 +34,24 @@ class eyny(forum):
 		path = u"member.php?mod=logging&action=logout&formhash=b6159313"
 		logout_url = self.url + path
 		response = self.session.get(logout_url)
-		
+	
 	# right now it only support the hcmoic session :)
-	# should the return list be an class objec so that it is more maintainable?
 	def parsing(self, url):
+		JobQueue = geventQueue()
 		response = self.session.get(url)
 		htmldoc = etree.HTML(response.text)
-		img_list = list()
-		# image list parsing
+		# lxml parsing
 		img_tags = htmldoc.xpath('//div[@class="pcb"]//td[@class="t_f"]//img')
-		comic_title = htmldoc.xpath('//a[@id="thread_subject"]')
-		#for img_tag in img_tags:
+		comic_title = htmldoc.xpath('//a[@id="thread_subject"]')[0].text
+		
+		# creating JobQueue for workers
+		# each parsing will create a new JobQueue 
 		for i in range(len(img_tags)):
 			img_src = img_tags[i].get('src')
 			if img_src.startswith('http') or img_src.startswith('https'):
-				img_obj = { "page": i, "link": img_src}
-				img_list.append(img_obj)
-		return img_list, comic_title[0].text
+				JobQueue.put(Job(comic_title, i, img_src))
+
+		return comic_title, JobQueue
 
 
 if __name__ == "__main__":

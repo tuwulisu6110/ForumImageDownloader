@@ -31,14 +31,9 @@ def eynyBoss():
 	answer = raw_input('answer : ')
 	try:
 		eynyInstance.login(username, password, questionid=questionid, answer=answer)
-		link_objs, comic_title = eynyInstance.parsing(u"http://www09.eyny.com/thread-9361883-1-1.html")
-		createImageFolder(comic_title)
-		for lib_obj in link_objs:
-			queue_obj = dict()
-			queue_obj['comicTitle'] = comic_title.replace(u'/', u'-')
-			queue_obj.update(lib_obj)
-			download_links.put(queue_obj)
-		
+		Title, EynyJobQueue = eynyInstance.parsing(u"http://www09.eyny.com/thread-9361883-1-1.html")
+		createImageFolder(Title)
+		return EynyJobQueue
 			
 	finally:
 		eynyInstance.logout()
@@ -50,14 +45,18 @@ def debug():
 		job['link'] = u'http://upload.wikimedia.org/wikipedia/commons/2/26/YellowLabradorLooking_new.jpg'
 		download_links.put(job)
 	createImageFolder(u'hello')
-#eynyBoss()
-debug()
+
+eynyJobQueue = eynyBoss()
+#debug()
+
+# create worker and start them
 workers = []
 for i in range(5):
-	workers.append(DownloadWorker(i, download_links))
+	workers.append(DownloadWorker(i, eynyJobQueue))
 for i in range(5):
 	workers[i].start()
 
+# block until all the worker has done their job
 gevent.joinall(workers)
 
 
