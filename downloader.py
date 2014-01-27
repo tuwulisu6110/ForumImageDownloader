@@ -1,35 +1,26 @@
 import gevent
 import gevent.queue
-from gevent import monkey
+from gevent import monkey, Greenlet
 monkey.patch_all()
 
 import os
+import os.path
+
 import requests
 from forum.eyny import eyny
+from DownloadWorker import DownloadWorker
 
+
+# contains the DownloadJob
 download_links = gevent.queue.Queue()
 
-# add some directory checking
-def download(id):
-	while not download_links.empty():
-		link_obj = download_links.get()
-		comic_title = link_obj['comicTitle']
-		page = link_obj['page']
-		link = link_obj['link']
-		local_folder = u'./temp/{0}'.format(comic_title.replace('/','-'))
-		print 'worker {0} get link....'.format(id)
-		if not os.path.exists(local_folder):
-			print u'creating {0} folder to store comic file...'.format(local_folder)
-			os.makedirs(local_folder)
-
-		# start download the file
-		r = requests.get(link, stream=True)
-		local_filename = u"{0}/{1}.jpg".format(local_folder, page)
-		print u'downloading {0} as {1}...'.format(link, local_filename)
-		with open(local_filename, "w") as f:
-			for chunk in r.iter_content(chunk_size=1024):
-				if chunk:
-					f.write(chunk)
+temp_dir = u'./temp/'
+def createImageFolder(ImageTitle):
+	ImageTitle = ImageTitle.replace(u'/', u'-')
+	local_folder = os.path.join(temp_dir, ImageTitle)
+	if not os.path.exists(local_folder):
+		print u'creating {0} folder to store comic file...'.format(local_folder)
+		os.makedirs(local_folder)
 
 
 def eynyBoss():
@@ -40,21 +31,32 @@ def eynyBoss():
 	answer = raw_input('answer : ')
 	try:
 		eynyInstance.login(username, password, questionid=questionid, answer=answer)
-		link_objs, comic_title = eynyInstance.parsing(u"http://www07.eyny.com/thread-9018016-1-2JSJRQNM.html")
+		link_objs, comic_title = eynyInstance.parsing(u"http://www09.eyny.com/thread-9361883-1-1.html")
+		createImageFolder(comic_title)
 		for lib_obj in link_objs:
 			queue_obj = dict()
-			queue_obj['comicTitle'] = comic_title
+			queue_obj['comicTitle'] = comic_title.replace(u'/', u'-')
 			queue_obj.update(lib_obj)
 			download_links.put(queue_obj)
 		
 			
 	finally:
 		eynyInstance.logout()
-
-eynyBoss()
+def debug():
+	for i in range(5):
+		job = dict()
+		job['comicTitle'] = u'hello'
+		job['page'] = i
+		job['link'] = u'http://upload.wikimedia.org/wikipedia/commons/2/26/YellowLabradorLooking_new.jpg'
+		download_links.put(job)
+	createImageFolder(u'hello')
+#eynyBoss()
+debug()
 workers = []
 for i in range(5):
-	workers.append(gevent.spawn(download, i))
+	workers.append(DownloadWorker(i, download_links))
+for i in range(5):
+	workers[i].start()
 
 gevent.joinall(workers)
 
