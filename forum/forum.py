@@ -7,33 +7,35 @@ class forum(object):
 	def __init__(self):
 		self.url = u""
 		self.session = requests.Session()
+		self.cookie = dict()
 		if self._is_cookie_exist():
-			self.cookie = self._load_cookie()
+			self.cookie = self._restore_cookie()
 			self.session.cookies = self.cookie
-		else:
-			self.cookie = dict()
 
-	# the cookie related method should be ok.
-	# if the subclass wish to overwirte it, as you wish.
-	# just remember what you are doing.
-
-	# check whether the cookie is exist or not
+	""" cookie management related method 
+	    the following methods are not fully ready yet.
+	"""
 	def _is_cookie_exist(self):
 		# get the class name
 		# the inherite class will also print it's name
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
 		print "checking cookie <-", cookie_path
 		return os.path.exists(cookie_path)
-	
+
+	def _is_cookie_expired(self):
+		if len(self.cookie) == 0 or not self.is_login():
+			return True
+		return False
+
 	# store the cookie in the cookie path
-	def _store_cookie(self):
+	def _save_cookie(self):
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
 		print "storing cookie -> ", cookie_path
 		with open(cookie_path, 'w') as f:
 			pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
 	
 	# load the cookie from the cookie path
-	def _load_cookie(self):
+	def _restore_cookie(self):
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
 		print "loading cookie <- ", cookie_path
 		with open(cookie_path) as f:
@@ -47,6 +49,9 @@ class forum(object):
 	def login(self, username, password, **kargs):
 		raise NotImplemented()
 	
+	def is_login(self):
+		raise NotImplemented()
+
 	def logout(self):
 		raise NotImplemented()
 	
