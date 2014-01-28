@@ -7,6 +7,11 @@ class forum(object):
 	def __init__(self):
 		self.url = u""
 		self.session = requests.Session()
+		if self._is_cookie_exist():
+			self.cookie = self._load_cookie()
+			self.session.cookies = self.cookie
+		else:
+			self.cookie = dict()
 
 	# the cookie related method should be ok.
 	# if the subclass wish to overwirte it, as you wish.
@@ -17,17 +22,20 @@ class forum(object):
 		# get the class name
 		# the inherite class will also print it's name
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
+		print "checking cookie <-", cookie_path
 		return os.path.exists(cookie_path)
 	
 	# store the cookie in the cookie path
 	def _store_cookie(self):
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
+		print "storing cookie -> ", cookie_path
 		with open(cookie_path, 'w') as f:
 			pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
 	
 	# load the cookie from the cookie path
 	def _load_cookie(self):
 		cookie_path = u'./cookie/{0}'.format(self.__class__.__name__)
+		print "loading cookie <- ", cookie_path
 		with open(cookie_path) as f:
 			cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
 		return cookies

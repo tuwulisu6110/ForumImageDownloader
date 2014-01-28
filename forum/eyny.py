@@ -12,18 +12,26 @@ class eyny(forum):
 		self.url = u'http://www01.eyny.com/'
 		self.forum_name = u'Eyny'
 
-	def login(self, username="", password="", **kargs):
-		print '{0} login ....'.format(self.forum_name)
-		path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
-		login_url = self.url + path
-		data = dict()
-		data['username'] = username
-		data['password'] = password
-		# put other argument inside the data dictionary
-		data.update(kargs)
 
-		response = self.session.post(login_url, data)
-		self._Adult()
+	def login(self, username="", password="", **kargs):
+		""" will handle the login for the eyny forum.
+		    before everything, it will check wether there is a cookie exist,
+		    if a cookie object is not None, it will not login.
+		"""
+		if len(self.cookie) == 0:
+			print '{0} login ....'.format(self.forum_name)
+			path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
+			login_url = self.url + path
+			data = dict()
+			data['username'] = username
+			data['password'] = password
+			""" put other argument inside the data dictionary """
+			data.update(kargs)
+			response = self.session.post(login_url, data)
+			self._Adult()
+			""" if login success, store the cookie to the local folder """
+			if self.parse_login_success():
+				self._store_cookie()
 	
 	def _Adult(self):
 		path = u'forum-1629-1.html'
@@ -37,8 +45,11 @@ class eyny(forum):
 		logout_url = self.url + path
 		response = self.session.get(logout_url)
 
-	# check whether the login is success or not
-	def parsing_login_success(self):
+	def parse_login_success(self):
+		"""check login has success or not,
+		   as you can see from the method name,
+		   it will parse the normal page and check it is a success login.
+		"""
 		response = self.session.get(self.url)
 		htmldoc = etree.HTML(response.text)
 		a_tag = htmldoc.xpath('//div[@id="toptb"]//div[@class="y"]/a')	
@@ -48,13 +59,12 @@ class eyny(forum):
 			return True
 
 	# right now it only support the hcmoic session :)
-	def parsing_hcomic(self, url):
+	def parse_hcomic(self, url):
 		JobQueue = geventQueue()
 		response = self.session.get(url)
 		htmldoc = etree.HTML(response.text)
-		# lxml parsing
 		img_tags = htmldoc.xpath('//div[@class="pcb"]//td[@class="t_f"]//img')
-		comic_title = htmldoc.xpath('//a[@id="thread_subject"]')[0].text
+		comic_title = htmldoc.xpath('//a[@id="thread_subject"]')[0].text.replace('/', '-')
 		
 		# creating JobQueue for workers
 		# each parsing will create a new JobQueue 
