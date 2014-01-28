@@ -10,10 +10,6 @@ import requests
 from forum.eyny import eyny
 from company.DownloadWorker import DownloadWorker
 
-
-# contains the DownloadJob
-download_links = gevent.queue.Queue()
-
 temp_dir = u'./temp/'
 def createImageFolder(ImageTitle):
 	ImageTitle = ImageTitle.replace(u'/', u'-')
@@ -31,9 +27,15 @@ def eynyBoss():
 	answer = raw_input('answer : ')
 	try:
 		eynyInstance.login(username, password, questionid=questionid, answer=answer)
-		Title, EynyJobQueue = eynyInstance.parsing(u"http://www09.eyny.com/thread-9361883-1-1.html")
-		createImageFolder(Title)
-		return EynyJobQueue
+		if eynyInstance.parsing_login_success():
+			Title, EynyJobQueue = eynyInstance.parsing_hcomic(u"http://www09.eyny.com/thread-9361883-1-1.html")
+			createImageFolder(Title)
+			return EynyJobQueue
+		else:
+			print u'login failed -> password or username is wrong?'
+			# return an empty queue
+			return gevent.queue.Queue()
+
 			
 	finally:
 		eynyInstance.logout()

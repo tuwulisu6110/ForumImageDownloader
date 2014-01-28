@@ -1,6 +1,5 @@
 from gevent.queue import Queue as geventQueue
-import requests, requests.utils
-import pickle
+import requests
 from lxml import etree, html
 import os, os.path
 from forum import forum
@@ -9,35 +8,22 @@ from company.Job import Job
 
 class eyny(forum):
 	def __init__(self):
+		super(eyny, self).__init__()
 		self.url = u'http://www01.eyny.com/'
 		self.forum_name = u'Eyny'
 
-	def _is_cookie_exist(self):
-		return os.path.exists(u'./cookie/eyny.cookie')
-	def _store_cookie(self):
-		with open(u'./cookie/eyny.cookie', 'w') as f:
-			pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
-	def _load_cookie(self):
-		with open(u'./cookie/eyny.cookie') as f:
-			cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
-		return cookies
-
 	def login(self, username="", password="", **kargs):
-		if not self._is_cookie_exist():
-			print '{0} login ....'.format(self.forum_name)
-			path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
-			login_url = self.url + path
-			data = dict()
-			data['username'] = username
-			data['password'] = password
-			# put other argument inside the data dictionary
-			data.update(kargs)
-			response = self.session.post(login_url, data)
-			self._Adult()
-			self._store_cookie()
-		else:
-			print 'loading cookies....'
-			self.session = requests.Session(cookies=self._load_cookie()) 
+		print '{0} login ....'.format(self.forum_name)
+		path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
+		login_url = self.url + path
+		data = dict()
+		data['username'] = username
+		data['password'] = password
+		# put other argument inside the data dictionary
+		data.update(kargs)
+
+		response = self.session.post(login_url, data)
+		self._Adult()
 	
 	def _Adult(self):
 		path = u'forum-1629-1.html'
@@ -50,9 +36,19 @@ class eyny(forum):
 		path = u"member.php?mod=logging&action=logout&formhash=b6159313"
 		logout_url = self.url + path
 		response = self.session.get(logout_url)
-	
+
+	# check whether the login is success or not
+	def parsing_login_success(self):
+		response = self.session.get(self.url)
+		htmldoc = etree.HTML(response.text)
+		a_tag = htmldoc.xpath('//div[@id="toptb"]//div[@class="y"]/a')	
+		if len(a_tag) < 5:
+			return False
+		else:
+			return True
+
 	# right now it only support the hcmoic session :)
-	def parsing(self, url):
+	def parsing_hcomic(self, url):
 		JobQueue = geventQueue()
 		response = self.session.get(url)
 		htmldoc = etree.HTML(response.text)
