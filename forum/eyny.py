@@ -15,23 +15,25 @@ class eyny(forum):
 
 	def login(self, username="", password="", **kargs):
 		""" will handle the login for the eyny forum.
-		    before everything, it will check wether there is a cookie exist,
-		    if a cookie object is not None, it will not login.
+		    if the login success, store the  cookie to local folder
 		"""
-		if len(self.cookie) == 0:
-			print '{0} login ....'.format(self.forum_name)
-			path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
-			login_url = self.url + path
-			data = dict()
-			data['username'] = username
-			data['password'] = password
-			""" put other argument inside the data dictionary """
-			data.update(kargs)
-			response = self.session.post(login_url, data)
-			self._Adult()
-			""" if login success, store the cookie to the local folder """
-			if self.parse_login_success():
-				self._store_cookie()
+		print '{0} login ....'.format(self.forum_name)
+		path = u'member.php?mod=logging&action=login&loginsubmit=yes&handlekey=login&inajax=1'
+		login_url = self.url + path
+		data = dict()
+		data['username'] = username
+		data['password'] = password
+		""" put other argument inside the data dictionary """
+		data.update(kargs)
+		response = self.session.post(login_url, data)
+		self._Adult()
+
+		""" if login success, store the cookie to the local folder """
+		if self.is_login():
+			self._save_cookie()
+			return True
+		else:
+			return False
 	
 	def _Adult(self):
 		path = u'forum-1629-1.html'
@@ -45,15 +47,18 @@ class eyny(forum):
 		logout_url = self.url + path
 		response = self.session.get(logout_url)
 
-	def parse_login_success(self):
+	def is_login(self):
+		return self._parse_login_success()
+
+	def _parse_login_success(self):
 		"""check login has success or not,
 		   as you can see from the method name,
 		   it will parse the normal page and check it is a success login.
 		"""
 		response = self.session.get(self.url)
 		htmldoc = etree.HTML(response.text)
-		a_tag = htmldoc.xpath('//div[@id="toptb"]//div[@class="y"]/a')	
-		if len(a_tag) < 5:
+		a_tags = htmldoc.xpath('//div[@id="toptb"]//div[@class="y"]/a')	
+		if len(a_tags) < 5:
 			return False
 		else:
 			return True
