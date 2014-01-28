@@ -1,7 +1,7 @@
 class Job(object):
 	def __init__(self, ImageFileName=u'', pageNumber=None, urlLink=u''):
 		self.content = dict()
-		self.content['ImageFileName'] = ImageFileName
+		self.content['ImageFileName'] = ImageFileName.replace('/', '-')
 		self.content['pageNumber'] = pageNumber
 		self.content['urlLink'] = urlLink
 	@property	

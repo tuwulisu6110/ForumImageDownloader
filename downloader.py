@@ -12,7 +12,7 @@ from company.DownloadWorker import DownloadWorker
 
 temp_dir = u'./temp/'
 def createImageFolder(ImageTitle):
-	ImageTitle = ImageTitle.replace(u'/', u'-')
+	ImageTitle = ImageTitle
 	local_folder = os.path.join(temp_dir, ImageTitle)
 	if not os.path.exists(local_folder):
 		print u'creating {0} folder to store comic file...'.format(local_folder)
@@ -27,8 +27,8 @@ def eynyBoss():
 	answer = raw_input('answer : ')
 	try:
 		eynyInstance.login(username, password, questionid=questionid, answer=answer)
-		if eynyInstance.parsing_login_success():
-			Title, EynyJobQueue = eynyInstance.parsing_hcomic(u"http://www09.eyny.com/thread-9361883-1-1.html")
+		if eynyInstance.parse_login_success():
+			Title, EynyJobQueue = eynyInstance.parse_hcomic(u"http://www06.eyny.com/thread-8561520-1-9FJC8P4V.html")
 			createImageFolder(Title)
 			return EynyJobQueue
 		else:
